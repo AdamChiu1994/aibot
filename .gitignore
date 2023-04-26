@@ -1,0 +1,4 @@
+# 不要的檔名放進，git就會變灰色
+db.sqlite3
+*.ipynb
+__pycache__/
