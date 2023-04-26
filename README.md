@@ -31,7 +31,8 @@
 
 ### 綁定雲端倉庫 url
 
-- git add remote https://www.github.com/...
+- git remote add  https://github.com/AdamChiu1994/aibot.git
+- git remote -v
 
 ### 推送程式碼
 
