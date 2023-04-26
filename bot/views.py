@@ -1,15 +1,12 @@
-# django 引用
 from django.shortcuts import render
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.views.decorators.csrf import csrf_exempt
 # Create your views here.
 
-# line-bot 引用
 from linebot import LineBotApi, WebhookHandler, WebhookParser
 from linebot.exceptions import InvalidSignatureError, LineBotApiError
 from linebot.models import MessageEvent, TextSendMessage, ImageSendMessage
-
 from bs4 import BeautifulSoup
 import requests
 
@@ -21,21 +18,21 @@ def get_biglottery():
     try:
         url = 'https://www.taiwanlottery.com.tw/lotto/lotto649/history.aspx'
         resp = requests.get(url)
-        resp.text
         soup = BeautifulSoup(resp.text, 'lxml')
-        trs = soup.find('table', class_='table_org td_hm').find_all('tr')
+        trs = soup.find('table', class_="table_org td_hm").find_all('tr')
         data1 = [td.text.strip() for td in trs[0].find_all('td')]
         data2 = [td.text.strip() for td in trs[1].find_all('td')]
         numbers = [td.text.strip() for td in trs[4].find_all('td')][1:]
-        data = ""
+        data = ''
         for i in range(len(data1)):
             data += f'{data1[i]}:{data2[i]}\n'
-        data += ','.join(numbers[:-1])+" 特別號："+numbers[-1]
+        data += ','.join(numbers[:-1])+' 特別號:'+numbers[-1]
         print(data)
+
         return data
     except Exception as e:
         print(e)
-        return '取得大樂透號碼失敗，請稍後再試...'
+        return '取得大樂透號碼，請稍後在試...'
 
 
 def lottery(request):
@@ -44,14 +41,10 @@ def lottery(request):
 
 
 @csrf_exempt
-# 修飾字詞 for django 必須有@csrf_exempt
 def callback(request):
     if request.method == 'POST':
-        # 網頁以POST傳遞至LINEBOT
         signature = request.META['HTTP_X_LINE_SIGNATURE']
-        # 認證
         body = request.body.decode('utf-8')
-        # 解析
         try:
             events = parse.parse(body, signature)
         except InvalidSignatureError:
@@ -73,36 +66,31 @@ def callback(request):
                     message = '早安你好!'
                 elif '捷運' in text:
                     mrts = {
-                        '台北': 'https: // web.metro.taipei/pages/assets/images/routemap2023n.png',
-                        '台中': 'https://www.funtime.com.tw/blog/wp-content/uploads/2020/09/116-700x700.jpg',
-                        '高雄': 'https://upload.wikimedia.org/wikipedia/commons/5/56/%E9%AB%98%E9%9B%84%E6%8D%B7%E9%81%8B%E8%B7%AF%E7%B6%B2%E5%9C%96_%282020%29.png'
+                        '台北': 'https://web.metro.taipei/pages/assets/images/routemap2023n.png',
+                        '台中': 'https://assets.piliapp.com/s3pxy/mrt_taiwan/taichung/20201112_zh.png?v=2',
+                        '高雄': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/%E9%AB%98%E9%9B%84%E6%8D%B7%E9%81%8B%E8%B7%AF%E7%B6%B2%E5%9C%96_%282020%29.png/550px-%E9%AB%98%E9%9B%84%E6%8D%B7%E9%81%8B%E8%B7%AF%E7%B6%B2%E5%9C%96_%282020%29.png'
                     }
-                    # 預設值
-                    image_url = 'https: // web.metro.taipei/pages/assets/images/routemap2023n.png'
+
+                    image_url = 'https://web.metro.taipei/pages/assets/images/routemap2023n.png'
                     for mrt in mrts:
-                        print(mrt)
                         if mrt in text:
                             image_url = mrts[mrt]
-                            print(image_url)
                             break
                 elif '樂透' in text:
                     message = get_biglottery()
                 else:
-                    message = "Sorry, I don't know what do you say."
+                    message = '抱歉，我不知道你說甚麼?'
 
                 if message is None:
-                    # 傳遞圖片 ImageSendMessage(連結,預覽連結)
                     message_obj = ImageSendMessage(image_url, image_url)
-
                 else:
                     message_obj = TextSendMessage(text=message)
 
                 line_bot_api.reply_message(event.reply_token, message_obj)
-
         return HttpResponse()
     else:
         return HttpResponseBadRequest()
 
 
 def index(request):
-    return HttpResponse("<h1>Hello I'm line bot!</h1>")
+    return HttpResponse("<h1>你好，我是AI機器人</h1>")
